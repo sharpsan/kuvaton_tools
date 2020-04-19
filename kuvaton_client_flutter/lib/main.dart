@@ -1,6 +1,6 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:kuvaton_client_flutter/services/api/api.dart';
-import 'package:kuvaton_client_flutter/services/api/api_service.dart';
+import 'package:kuvaton_client_flutter/generatable/router/router.gr.dart';
 
 void main() => runApp(MyApp());
 
@@ -8,22 +8,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Kuvaton Client',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(),
+      builder: ExtendedNavigator<Router>(router: Router()),
     );
-  }
-}
-
-class MyHomePage extends StatelessWidget {
-  final ApiService apiService = ApiService();
-  @override
-  Widget build(BuildContext context) {
-    apiService.getPage(endpoint: Endpoint.lolPageFirst).then((result) =>
-        result.entries.forEach((entry) =>
-            print('filename: ${entry.imageFilename}, url: ${entry.imageUrl}')));
-    return Container();
   }
 }
