@@ -131,8 +131,11 @@ class _ImageRouteState extends State<ImageRoute> {
             child: SingleChildScrollView(
               child: Hero(
                 tag: widget.imageUrl,
-                child: KuvatonCachedNetworkImage(
-                  imageUrl: widget.imageUrl,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: KuvatonCachedNetworkImage(
+                    imageUrl: widget.imageUrl,
+                  ),
                 ),
               ),
             ),
