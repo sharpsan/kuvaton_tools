@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_picker/flutter_picker.dart';
 import 'package:kuvaton_client_flutter/components/action_bar/action_bar.dart';
 import 'package:kuvaton_client_flutter/components/entry_card/entry_card.dart';
-import 'package:kuvaton_client_flutter/helpers/vant_helper/vant_helper.dart';
+import 'package:kuvaton_client_flutter/components/loading_indicators/kuvaton_loading_branded.dart';
 import 'package:kuvaton_client_flutter/services/api/api.dart';
 import 'package:kuvaton_client_flutter/services/api/api_service.dart';
 import 'package:kuvaton_client_flutter/services/api/entries_response.dart';
@@ -12,55 +13,62 @@ class HomeRoute extends StatefulWidget {
 }
 
 class _HomeRouteState extends State<HomeRoute> {
-  final ApiService apiService = ApiService();
-  EntriesResponse data;
-  int currentPage = 1;
-  int currentTabIndex = 0;
-  Endpoint currentEndpoint = Endpoint.lolCategory;
+  final ApiService _apiService = ApiService();
+  EntriesResponse _data;
+  int _currentPage = 1;
+  int _currentTabIndex = 0;
+  Endpoint _currentEndpoint = Endpoint.lolCategory;
 
   void _resetPageCount() {
-    currentPage = 1;
+    _currentPage = 1;
   }
 
   Future<void> _getData({@required Endpoint endpoint, int pageNumber}) async {
-    setState(() => data = null);
-    currentEndpoint = endpoint;
-    var _data =
-        await apiService.getPage(endpoint: endpoint, pageNumber: pageNumber);
-    setState(() => data = _data);
+    setState(() => _data = null);
+    _currentEndpoint = endpoint;
+    var data =
+        await _apiService.getPage(endpoint: endpoint, pageNumber: pageNumber);
+    setState(() => _data = data);
   }
 
   Future<void> _onRefresh() async {
-    _getData(endpoint: currentEndpoint);
+    _getData(endpoint: _currentEndpoint);
     _resetPageCount();
   }
 
   Future<void> _specificPage() async {
-    VantHelper.quickPicker(context, currentPage: currentPage,
-        onConfirm: (selectedValue) {
-      setState(() => currentPage = selectedValue);
-      _getData(endpoint: currentEndpoint, pageNumber: selectedValue);
-    });
+    List numbers = List.generate(500, (index) => index);
+    numbers.removeAt(0);
+    Picker(
+        adapter: PickerDataAdapter<String>(pickerdata: numbers),
+        selecteds: [_currentPage - 1],
+        hideHeader: false,
+        itemExtent: 36,
+        onConfirm: (Picker picker, List value) {
+          int selectedValue = numbers[value[0]];
+          setState(() => _currentPage = selectedValue);
+          _getData(endpoint: _currentEndpoint, pageNumber: selectedValue);
+        }).showModal(this.context); //
   }
 
   Future<void> _nextPage() async {
-    currentPage++;
-    _getData(endpoint: currentEndpoint, pageNumber: currentPage);
+    _currentPage++;
+    _getData(endpoint: _currentEndpoint, pageNumber: _currentPage);
   }
 
   Future<void> _previousPage() async {
-    if (currentPage < 2) {
+    if (_currentPage < 2) {
       //TODO: implement UI warning message
       return;
     }
-    currentPage--;
-    _getData(endpoint: currentEndpoint, pageNumber: currentPage);
+    _currentPage--;
+    _getData(endpoint: _currentEndpoint, pageNumber: _currentPage);
   }
 
   @override
   void initState() {
     super.initState();
-    _getData(endpoint: currentEndpoint);
+    _getData(endpoint: _currentEndpoint);
   }
 
   @override
@@ -69,15 +77,15 @@ class _HomeRouteState extends State<HomeRoute> {
       // appBar: AppBar(
       //   title: Text('KuvatON Client'),
       // ),
-      body: (data == null)
-          ? Center(child: CircularProgressIndicator())
+      body: (_data == null)
+          ? Center(child: KuvatonLoadingBranded())
           : RefreshIndicator(
               onRefresh: _onRefresh,
               child: ListView.builder(
-                itemCount: data?.entries?.length ?? 0,
+                itemCount: _data?.entries?.length ?? 0,
                 itemBuilder: (BuildContext context, int index) {
-                  EntryResponse entry = data.entries[index];
-                  return data.entries.length - 1 == index
+                  EntryResponse entry = _data.entries[index];
+                  return _data.entries.length - 1 == index
                       ? Column(
                           children: <Widget>[
                             EntryCard(
@@ -87,7 +95,7 @@ class _HomeRouteState extends State<HomeRoute> {
                               buttonPreviousOnPressed: _previousPage,
                               buttonNextOnPressed: _nextPage,
                               buttonPageOnPressed: _specificPage,
-                              currentPageNumber: currentPage,
+                              currentPageNumber: _currentPage,
                             ),
                           ],
                         )
@@ -98,9 +106,9 @@ class _HomeRouteState extends State<HomeRoute> {
               ),
             ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentTabIndex,
+        currentIndex: _currentTabIndex,
         onTap: (index) {
-          setState(() => currentTabIndex = index);
+          setState(() => _currentTabIndex = index);
           if (index == 0) {
             _resetPageCount();
             _getData(endpoint: Endpoint.lolCategory);
