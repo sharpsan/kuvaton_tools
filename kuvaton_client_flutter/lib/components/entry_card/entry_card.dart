@@ -2,7 +2,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:kuvaton_client_flutter/components/entry_card/kuvaton_cached_network_image.dart';
 import 'package:kuvaton_client_flutter/generatable/router/router.gr.dart';
-import 'package:pinch_zoom_image_updated/pinch_zoom_image_updated.dart';
 
 class EntryCard extends StatefulWidget {
   final String imageFilename;
