@@ -3,6 +3,7 @@ import 'package:flutter_picker/flutter_picker.dart';
 import 'package:kuvaton_client_flutter/components/action_bar/action_bar.dart';
 import 'package:kuvaton_client_flutter/components/entry_card/entry_card.dart';
 import 'package:kuvaton_client_flutter/components/loading_indicators/kuvaton_loading_branded.dart';
+import 'package:kuvaton_client_flutter/components/loading_indicators/loading_overlay.dart';
 import 'package:kuvaton_client_flutter/services/api/api.dart';
 import 'package:kuvaton_client_flutter/services/api/api_service.dart';
 import 'package:kuvaton_client_flutter/services/api/entries_response.dart';
@@ -21,31 +22,52 @@ class HomeRoute extends StatefulWidget {
 
 class _HomeRouteState extends State<HomeRoute> {
   final ApiService _apiService = ApiService();
-  EntriesResponse _data;
-  int _currentPage = 1;
-  int _currentTabIndex = 0;
-  Endpoint _currentEndpoint = Endpoint.lolCategory;
   final List<NavigationEntry> _navigationEntries = <NavigationEntry>[
     NavigationEntry(Endpoint.lolCategory, Icons.home, 'LOL'),
     NavigationEntry(Endpoint.topCategory, Icons.favorite, 'Top'),
     NavigationEntry(Endpoint.randomCategory, Icons.shuffle, 'Random'),
   ];
+  EntriesResponse _data;
+  int _currentPage = 1;
+  int _currentTabIndex = 0;
+  Endpoint _currentEndpoint = Endpoint.lolCategory;
+  bool _loadingOverlayVisible = false;
 
   void _resetPageCount() {
     _currentPage = 1;
   }
 
-  Future<void> _getData({@required Endpoint endpoint, int pageNumber}) async {
-    setState(() => _data = null);
+  Future<bool> _getData({
+    @required Endpoint endpoint,
+    int pageNumber,
+    bool showLoadingOverlay = true,
+  }) async {
+    print('CALLING: _getData()');
+    _setLoadingOverlayVisibility(true);
     _currentEndpoint = endpoint;
     var data =
         await _apiService.getPage(endpoint: endpoint, pageNumber: pageNumber);
     setState(() => _data = data);
+    _setLoadingOverlayVisibility(false);
+    return true;
   }
 
-  Future<void> _onRefresh() async {
-    _getData(endpoint: _currentEndpoint);
+  Future<bool> _onRefresh() async {
+    print('CALLING: _onRefresh()');
+    await _getData(endpoint: _currentEndpoint, showLoadingOverlay: false);
     _resetPageCount();
+    return true;
+  }
+
+  void _switchTab(int tabIndex) {
+    print('CALLING _switchTab()');
+    setState(() => _currentTabIndex = tabIndex);
+    if (_navigationEntries.length < tabIndex) {
+      throw Exception(
+          'There is not a handler for [BottomNavigationBar] item $tabIndex');
+    }
+    _resetPageCount();
+    _getData(endpoint: _navigationEntries[tabIndex].endpoint);
   }
 
   Future<void> _specificPage() async {
@@ -77,6 +99,10 @@ class _HomeRouteState extends State<HomeRoute> {
     _getData(endpoint: _currentEndpoint, pageNumber: _currentPage);
   }
 
+  void _setLoadingOverlayVisibility(bool visible) {
+    setState(() => _loadingOverlayVisible = visible);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -91,43 +117,39 @@ class _HomeRouteState extends State<HomeRoute> {
       // ),
       body: (_data == null)
           ? Center(child: KuvatonLoadingBranded())
-          : RefreshIndicator(
-              onRefresh: _onRefresh,
-              child: ListView.builder(
-                itemCount: _data?.entries?.length ?? 0,
-                itemBuilder: (BuildContext context, int index) {
-                  EntryResponse entry = _data.entries[index];
-                  return _data.entries.length - 1 == index
-                      ? Column(
-                          children: <Widget>[
-                            EntryCard(
-                                imageFilename: entry.imageFilename,
-                                imageUrl: entry.imageUrl),
-                            ActionBar(
-                              buttonPreviousOnPressed: _previousPage,
-                              buttonNextOnPressed: _nextPage,
-                              buttonPageOnPressed: _specificPage,
-                              currentPageNumber: _currentPage,
-                            ),
-                          ],
-                        )
-                      : EntryCard(
-                          imageFilename: entry.imageFilename,
-                          imageUrl: entry.imageUrl);
-                },
+          : LoadingOverlay(
+              isLoading: _loadingOverlayVisible ?? false,
+              child: RefreshIndicator(
+                onRefresh: _onRefresh,
+                child: ListView.builder(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  itemCount: _data?.entries?.length ?? 0,
+                  itemBuilder: (BuildContext context, int index) {
+                    EntryResponse entry = _data.entries[index];
+                    return _data.entries.length - 1 == index
+                        ? Column(
+                            children: <Widget>[
+                              EntryCard(
+                                  imageFilename: entry.imageFilename,
+                                  imageUrl: entry.imageUrl),
+                              ActionBar(
+                                buttonPreviousOnPressed: _previousPage,
+                                buttonNextOnPressed: _nextPage,
+                                buttonPageOnPressed: _specificPage,
+                                currentPageNumber: _currentPage,
+                              ),
+                            ],
+                          )
+                        : EntryCard(
+                            imageFilename: entry.imageFilename,
+                            imageUrl: entry.imageUrl);
+                  },
+                ),
               ),
             ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentTabIndex,
-        onTap: (index) {
-          setState(() => _currentTabIndex = index);
-          if (_navigationEntries.length < index) {
-            throw Exception(
-                'There is not a handler for [BottomNavigationBar] item $index');
-          }
-          _resetPageCount();
-          _getData(endpoint: _navigationEntries[index].endpoint);
-        },
+        onTap: (index) => _switchTab(index),
         items: _navigationEntries
             .map((entry) => BottomNavigationBarItem(
                   icon: Icon(entry.icon),
