@@ -45,12 +45,11 @@ class _HomeRouteState extends State<HomeRoute> {
   }) async {
     print('CALLING: _getData()');
     _setLoadingOverlayVisibility(true);
+    _scrollTo(0);
     _currentEndpoint = endpoint;
     var data =
         await _apiService.getPage(endpoint: endpoint, pageNumber: pageNumber);
     setState(() => _data = data.entries);
-    _scrollTo(0);
-    //_jumpTo(0);
     _setLoadingOverlayVisibility(false);
     return true;
   }
