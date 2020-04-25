@@ -22,12 +22,13 @@ class HomeRoute extends StatefulWidget {
 
 class _HomeRouteState extends State<HomeRoute> {
   final ApiService _apiService = ApiService();
+  final ScrollController _scrollController = ScrollController();
   final List<NavigationEntry> _navigationEntries = <NavigationEntry>[
     NavigationEntry(Endpoint.lolCategory, Icons.home, 'LOL'),
     NavigationEntry(Endpoint.topCategory, Icons.favorite, 'Top'),
     NavigationEntry(Endpoint.randomCategory, Icons.shuffle, 'Random'),
   ];
-  EntriesResponse _data;
+  List<EntryResponse> _data;
   int _currentPage = 1;
   int _currentTabIndex = 0;
   Endpoint _currentEndpoint = Endpoint.lolCategory;
@@ -47,7 +48,9 @@ class _HomeRouteState extends State<HomeRoute> {
     _currentEndpoint = endpoint;
     var data =
         await _apiService.getPage(endpoint: endpoint, pageNumber: pageNumber);
-    setState(() => _data = data);
+    setState(() => _data = data.entries);
+    _scrollTo(0);
+    //_jumpTo(0);
     _setLoadingOverlayVisibility(false);
     return true;
   }
@@ -103,6 +106,17 @@ class _HomeRouteState extends State<HomeRoute> {
     setState(() => _loadingOverlayVisible = visible);
   }
 
+  /// scroll to y offset of [ListView]
+  void _scrollTo(double offset) {
+    if (_scrollController.positions.isNotEmpty) {
+      _scrollController.animateTo(
+        offset,
+        curve: Curves.easeOut,
+        duration: const Duration(milliseconds: 300),
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -122,11 +136,12 @@ class _HomeRouteState extends State<HomeRoute> {
               child: RefreshIndicator(
                 onRefresh: _onRefresh,
                 child: ListView.builder(
+                  controller: _scrollController,
                   physics: AlwaysScrollableScrollPhysics(),
-                  itemCount: _data?.entries?.length ?? 0,
+                  itemCount: _data.length ?? 0,
                   itemBuilder: (BuildContext context, int index) {
-                    EntryResponse entry = _data.entries[index];
-                    return _data.entries.length - 1 == index
+                    EntryResponse entry = _data[index];
+                    return _data.length - 1 == index
                         ? Column(
                             children: <Widget>[
                               EntryCard(
