@@ -7,6 +7,13 @@ import 'package:kuvaton_client_flutter/services/api/api.dart';
 import 'package:kuvaton_client_flutter/services/api/api_service.dart';
 import 'package:kuvaton_client_flutter/services/api/entries_response.dart';
 
+class NavigationEntry {
+  final Endpoint endpoint;
+  final IconData icon;
+  final String title;
+  NavigationEntry(this.endpoint, this.icon, this.title);
+}
+
 class HomeRoute extends StatefulWidget {
   @override
   _HomeRouteState createState() => _HomeRouteState();
@@ -18,6 +25,11 @@ class _HomeRouteState extends State<HomeRoute> {
   int _currentPage = 1;
   int _currentTabIndex = 0;
   Endpoint _currentEndpoint = Endpoint.lolCategory;
+  final List<NavigationEntry> _navigationEntries = <NavigationEntry>[
+    NavigationEntry(Endpoint.lolCategory, Icons.home, 'LOL'),
+    NavigationEntry(Endpoint.topCategory, Icons.favorite, 'Top'),
+    NavigationEntry(Endpoint.randomCategory, Icons.shuffle, 'Random'),
+  ];
 
   void _resetPageCount() {
     _currentPage = 1;
@@ -109,34 +121,19 @@ class _HomeRouteState extends State<HomeRoute> {
         currentIndex: _currentTabIndex,
         onTap: (index) {
           setState(() => _currentTabIndex = index);
-          if (index == 0) {
-            _resetPageCount();
-            _getData(endpoint: Endpoint.lolCategory);
-          } else if (index == 1) {
-            _resetPageCount();
-            _getData(endpoint: Endpoint.topCategory);
-          } else if (index == 2) {
-            _resetPageCount();
-            _getData(endpoint: Endpoint.randomCategory);
-          } else {
+          if (_navigationEntries.length < index) {
             throw Exception(
                 'There is not a handler for [BottomNavigationBar] item $index');
           }
+          _resetPageCount();
+          _getData(endpoint: _navigationEntries[index].endpoint);
         },
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            title: Text('LOL'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            title: Text('Top'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shuffle),
-            title: Text('Random'),
-          ),
-        ],
+        items: _navigationEntries
+            .map((entry) => BottomNavigationBarItem(
+                  icon: Icon(entry.icon),
+                  title: Text(entry.title),
+                ))
+            .toList(),
       ),
     );
   }
