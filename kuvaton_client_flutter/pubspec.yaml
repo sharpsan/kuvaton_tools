@@ -33,6 +33,7 @@ dependencies:
   sweetsheet: ^0.2.0
   android_intent: ^0.3.7+3
   flutter_picker: ^1.1.5
+  lazy_load_scrollview: ^1.1.0
 
 dev_dependencies:
   flutter_test:
