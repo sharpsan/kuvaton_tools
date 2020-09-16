@@ -11,6 +11,10 @@ class MyApp extends StatelessWidget {
       title: 'Kuvaton Client',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        brightness: Brightness.light,
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
       ),
       //builder: ExtendedNavigator<Router>(router: Router()),
       builder: ExtendedNavigator.builder(

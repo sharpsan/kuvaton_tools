@@ -10,6 +10,12 @@ import 'package:kuvaton_client_flutter/services/api/api_service.dart';
 import 'package:kuvaton_client_flutter/services/api/entries_response.dart';
 import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
 
+const List<NavigationEntry> _navigationEntries = <NavigationEntry>[
+  NavigationEntry(Endpoint.lolCategory, Icons.home, 'LOL'),
+  NavigationEntry(Endpoint.topCategory, Icons.favorite, 'Top'),
+  NavigationEntry(Endpoint.randomCategory, Icons.shuffle, 'Random'),
+];
+
 class HomeRoute extends StatefulWidget {
   @override
   _HomeRouteState createState() => _HomeRouteState();
@@ -18,11 +24,6 @@ class HomeRoute extends StatefulWidget {
 class _HomeRouteState extends State<HomeRoute> {
   final ApiService _apiService = ApiService();
   final ScrollController _scrollController = ScrollController();
-  final List<NavigationEntry> _navigationEntries = <NavigationEntry>[
-    NavigationEntry(Endpoint.lolCategory, Icons.home, 'LOL'),
-    NavigationEntry(Endpoint.topCategory, Icons.favorite, 'Top'),
-    NavigationEntry(Endpoint.randomCategory, Icons.shuffle, 'Random'),
-  ];
   List<EntryResponse> _data = [];
   int _currentPage = 1;
   int _currentTabIndex = 0;
@@ -30,10 +31,7 @@ class _HomeRouteState extends State<HomeRoute> {
   bool _loadingOverlayVisible = false;
   bool _dataUnloaded = true; // _data has never been loaded
   bool _fabIsVisible = false;
-
-  void _resetPageCount() {
-    _currentPage = 1;
-  }
+  bool _loading = false;
 
   Future<bool> _getData({
     @required Endpoint endpoint,
@@ -42,15 +40,19 @@ class _HomeRouteState extends State<HomeRoute> {
   }) async {
     print('CALLING: _getData()');
     _setLoadingOverlayVisibility(true);
-    var data =
-        await _apiService.getPage(endpoint: endpoint, pageNumber: pageNumber);
+    _loading = true;
+    var data = await _apiService.getPage(
+      endpoint: endpoint,
+      pageNumber: pageNumber,
+    );
     setState(() => _data.addAll(data.entries));
     _setLoadingOverlayVisibility(false);
+    _loading = false;
     return true;
   }
 
-  Future<bool> _onRefresh() async {
-    print('CALLING: _onRefresh()');
+  Future<bool> _pullToRefreshHandler() async {
+    print('CALLING: _pullToRefreshHandler()');
     _data.clear();
     await _getData(endpoint: _currentEndpoint, showLoadingOverlay: false);
     _resetPageCount();
@@ -60,6 +62,7 @@ class _HomeRouteState extends State<HomeRoute> {
   /// load an additional page
   Future _loadMore() async {
     print('CALLING _loadmore()');
+    if (_loading) return print('cancelling, already loading...');
     _currentPage++;
     await _getData(
         endpoint: _currentEndpoint,
@@ -92,6 +95,8 @@ class _HomeRouteState extends State<HomeRoute> {
         hideHeader: false,
         itemExtent: 36,
         title: Text('Page'),
+        backgroundColor: Theme.of(context).cardColor,
+        textStyle: Theme.of(context).textTheme.bodyText1,
         onConfirm: (Picker picker, List value) {
           int selectedValue = numbers[value[0]];
           setState(() => _currentPage = selectedValue);
@@ -120,19 +125,12 @@ class _HomeRouteState extends State<HomeRoute> {
     setState(() => _loadingOverlayVisible = visible);
   }
 
-  // /// scroll to y offset of [ListView]
-  // void _scrollTo(double offset) {
-  //   if (_scrollController.positions.isNotEmpty) {
-  //     _scrollController.animateTo(
-  //       offset,
-  //       curve: Curves.easeOut,
-  //       duration: const Duration(milliseconds: 300),
-  //     );
-  //   }
-  // }
-
   void _setFabVisible(bool visible) {
     setState(() => _fabIsVisible = visible);
+  }
+
+  void _resetPageCount() {
+    _currentPage = 1;
   }
 
   void _onScrollListener() {
@@ -160,15 +158,13 @@ class _HomeRouteState extends State<HomeRoute> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: Text('KuvatON Client'),
-      // ),
       body: (_data == null || _dataUnloaded)
           ? Center(child: KuvatonLoadingBranded())
           : LoadingOverlay(
@@ -176,7 +172,7 @@ class _HomeRouteState extends State<HomeRoute> {
               child: LazyLoadScrollView(
                 onEndOfPage: _loadMore,
                 child: RefreshIndicator(
-                  onRefresh: _onRefresh,
+                  onRefresh: _pullToRefreshHandler,
                   child: ListView.builder(
                     controller: _scrollController,
                     physics: AlwaysScrollableScrollPhysics(),
@@ -229,5 +225,5 @@ class NavigationEntry {
   final Endpoint endpoint;
   final IconData icon;
   final String title;
-  NavigationEntry(this.endpoint, this.icon, this.title);
+  const NavigationEntry(this.endpoint, this.icon, this.title);
 }

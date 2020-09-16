@@ -29,7 +29,7 @@ class _LoadingOverlayState extends State<LoadingOverlay> {
               child: Container(
                 padding: EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).accentTextTheme.bodyText1.color,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: CircularProgressIndicator(),

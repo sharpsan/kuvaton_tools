@@ -24,15 +24,16 @@ class _EntryCardState extends State<EntryCard> {
         borderRadius: BorderRadius.circular(8),
         color: Colors.white,
         boxShadow: [
-          BoxShadow(
-            color: Colors.grey[400],
-            blurRadius: 6.0, // has the effect of softening the shadow
-            spreadRadius: 1.0, // has the effect of extending the shadow
-            offset: Offset(
-              0.0, // horizontal, move right 10
-              2.0, // vertical, move down 10
+          if (Theme.of(context).brightness == Brightness.light)
+            BoxShadow(
+              color: Colors.grey[400],
+              blurRadius: 6.0, // has the effect of softening the shadow
+              spreadRadius: 1.0, // has the effect of extending the shadow
+              offset: Offset(
+                0.0, // horizontal, move right 10
+                2.0, // vertical, move down 10
+              ),
             ),
-          ),
         ],
       ),
       child: Stack(
@@ -55,7 +56,6 @@ class _EntryCardState extends State<EntryCard> {
               child: InkWell(
                 borderRadius: BorderRadius.circular(8),
                 onTap: () {
-              
                   ExtendedNavigator.of(context).pushImageRoute(
                       imageFilename: widget.imageFilename,
                       imageUrl: widget.imageUrl);
