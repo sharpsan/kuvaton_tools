@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:kuvaton_client_flutter/generatable/router/router.gr.dart';
+import 'package:kuvaton_client_flutter/router/router.gr.dart';
 
 void main() => runApp(MyApp());
 
@@ -11,8 +11,17 @@ class MyApp extends StatelessWidget {
       title: 'Kuvaton Client',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        brightness: Brightness.light,
       ),
-      builder: ExtendedNavigator<Router>(router: Router()),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+      ),
+      //builder: ExtendedNavigator<Router>(router: Router()),
+      builder: ExtendedNavigator.builder(
+        router: Router(),
+        initialRoute: '/',
+        builder: (context, extendedNav) => extendedNav,
+      ),
     );
   }
 }
