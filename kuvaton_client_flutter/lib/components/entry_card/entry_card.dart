@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:kuvaton_client_flutter/components/entry_card/kuvaton_cached_network_image.dart';
-import 'package:kuvaton_client_flutter/generatable/router/router.gr.dart';
+import 'package:kuvaton_client_flutter/router/router.gr.dart';
 
 class EntryCard extends StatefulWidget {
   final String imageFilename;
@@ -55,7 +55,8 @@ class _EntryCardState extends State<EntryCard> {
               child: InkWell(
                 borderRadius: BorderRadius.circular(8),
                 onTap: () {
-                  ExtendedNavigator.ofRouter<Router>().pushImageRoute(
+              
+                  ExtendedNavigator.of(context).pushImageRoute(
                       imageFilename: widget.imageFilename,
                       imageUrl: widget.imageUrl);
                 },

@@ -8,13 +8,6 @@ import 'package:kuvaton_client_flutter/services/api/api.dart';
 import 'package:kuvaton_client_flutter/services/api/api_service.dart';
 import 'package:kuvaton_client_flutter/services/api/entries_response.dart';
 
-class NavigationEntry {
-  final Endpoint endpoint;
-  final IconData icon;
-  final String title;
-  NavigationEntry(this.endpoint, this.icon, this.title);
-}
-
 class HomeRoute extends StatefulWidget {
   @override
   _HomeRouteState createState() => _HomeRouteState();
@@ -173,4 +166,11 @@ class _HomeRouteState extends State<HomeRoute> {
       ),
     );
   }
+}
+
+class NavigationEntry {
+  final Endpoint endpoint;
+  final IconData icon;
+  final String title;
+  NavigationEntry(this.endpoint, this.icon, this.title);
 }

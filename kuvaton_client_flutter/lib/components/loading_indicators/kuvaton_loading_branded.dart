@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kuvaton_client_flutter/res/images.dart';
+import 'package:kuvaton_client_flutter/resources/resources.dart';
 
 class KuvatonLoadingBranded extends StatelessWidget {
   @override
