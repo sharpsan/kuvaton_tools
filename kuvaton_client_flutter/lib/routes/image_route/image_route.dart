@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'dart:io' show Platform;
 import 'package:android_intent/android_intent.dart';
-import 'package:async/async.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:file_utils/file_utils.dart';
 import 'package:media_scanner/media_scanner.dart';
@@ -26,30 +25,37 @@ class ImageRoute extends StatefulWidget {
 class _ImageRouteState extends State<ImageRoute> {
   final _sweetSheet = SweetSheet();
   final _scaleStateController = PhotoViewScaleStateController();
-  var _isScaling = false;
-
-  @override
-  void initState() {
-    _listenForScaling();
-    super.initState();
-  }
+  final _photoViewController = PhotoViewController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onVerticalDragUpdate: (details) {
-          if (_isScaling) return;
-          if (details.delta.dy > 10 || details.delta.dy < 10) {
-            context.router.pop();
-          }
-        },
-        child: PhotoView.customChild(
-          backgroundDecoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-          ),
-          scaleStateController: _scaleStateController,
+      body: PhotoView.customChild(
+        backgroundDecoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+        ),
+        controller: _photoViewController,
+        scaleStateController: _scaleStateController,
+        scaleStateCycle: _scaleStateCycle,
+        initialScale: PhotoViewComputedScale.contained * 1.0,
+        minScale: PhotoViewComputedScale.contained * 1.0,
+        maxScale: PhotoViewComputedScale.covered * 2.5,
+        child: GestureDetector(
+          onVerticalDragUpdate: (details) {
+            if (_scaleStateController.isZooming)
+              return; // disable if zoomed in/out
+            if (details.delta.dy > 10 || details.delta.dy < 10) {
+              context.router.pop();
+            }
+          },
+          onDoubleTap: () {
+            if (_scaleStateController.isZooming) {
+              _scaleStateController.reset();
+            } else {
+              _photoViewController.scale =
+                  (PhotoViewComputedScale.covered * 2.5).multiplier;
+            }
+          },
           child: Center(
             child: SingleChildScrollView(
               child: Hero(
@@ -76,6 +82,7 @@ class _ImageRouteState extends State<ImageRoute> {
   @override
   void dispose() {
     _scaleStateController.dispose();
+    _photoViewController.dispose();
     super.dispose();
   }
 
@@ -182,21 +189,16 @@ class _ImageRouteState extends State<ImageRoute> {
     }
   }
 
-  void _listenForScaling() {
-    final _updateIsScalingWhenIdle =
-        RestartableTimer(Duration(milliseconds: 200), () {
-      setState(() {
-        _isScaling = false;
-      });
-    });
-    _scaleStateController.outputScaleStateStream.listen((event) {
-      if (event == PhotoViewScaleState.zoomedIn ||
-          event == PhotoViewScaleState.zoomedOut) {
-        setState(() {
-          _isScaling = true;
-        });
-      }
-      _updateIsScalingWhenIdle.reset();
-    });
+  PhotoViewScaleState _scaleStateCycle(PhotoViewScaleState actual) {
+    switch (actual) {
+      case PhotoViewScaleState.zoomedIn:
+      case PhotoViewScaleState.zoomedOut:
+      case PhotoViewScaleState.covering:
+        return PhotoViewScaleState.initial;
+      case PhotoViewScaleState.initial:
+      case PhotoViewScaleState.originalSize:
+      default:
+        return PhotoViewScaleState.covering;
+    }
   }
 }
