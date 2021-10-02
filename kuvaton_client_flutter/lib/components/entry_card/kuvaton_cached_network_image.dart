@@ -20,8 +20,9 @@ class KuvatonCachedNetworkImage extends StatelessWidget {
             child: SizedBox(
               height: 50,
               width: 50,
-              child:
-                  CircularProgressIndicator(value: downloadProgress.progress),
+              child: CircularProgressIndicator(
+                value: downloadProgress.progress,
+              ),
             ),
           ),
         );

@@ -23,7 +23,7 @@ class _EntryCardState extends State<EntryCard> {
       margin: EdgeInsets.all(16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         boxShadow: [
           if (Theme.of(context).brightness == Brightness.light)
             BoxShadow(
