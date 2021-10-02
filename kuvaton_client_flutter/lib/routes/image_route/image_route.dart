@@ -58,8 +58,18 @@ class _ImageRouteState extends State<ImageRoute> {
     DefaultCacheManager cacheManager = DefaultCacheManager();
     FileInfo? fileInfo = await cacheManager.getFileFromCache(widget.imageUrl!);
     if (fileInfo == null) {
-      throw Exception(
-          'Cached file not found for image url: \'${widget.imageUrl}\'');
+      _sweetSheet.show(
+        context: context,
+        color: SweetSheetColor.DANGER,
+        title: Text('Error'),
+        description: Text('Cached file not found.'),
+        icon: Icons.error,
+        positive: SweetSheetAction(
+          title: 'OKAY',
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      );
+      return;
     }
     File file = fileInfo.file;
     String filePath = '${file.path}';
