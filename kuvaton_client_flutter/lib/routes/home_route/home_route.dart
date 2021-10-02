@@ -34,8 +34,8 @@ class _HomeRouteState extends State<HomeRoute> {
   bool _loading = false;
 
   Future<bool> _getData({
-    @required Endpoint endpoint,
-    int pageNumber,
+    required Endpoint endpoint,
+    int pageNumber = 0,
     bool showLoadingOverlay = true,
   }) async {
     print('CALLING: _getData()');
@@ -165,10 +165,10 @@ class _HomeRouteState extends State<HomeRoute> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: (_data == null || _dataUnloaded)
+      body: _dataUnloaded
           ? Center(child: KuvatonLoadingBranded())
           : LoadingOverlay(
-              isLoading: _loadingOverlayVisible ?? false,
+              isLoading: _loadingOverlayVisible,
               child: LazyLoadScrollView(
                 onEndOfPage: _loadMore,
                 child: RefreshIndicator(
@@ -176,7 +176,7 @@ class _HomeRouteState extends State<HomeRoute> {
                   child: ListView.builder(
                     controller: _scrollController,
                     physics: AlwaysScrollableScrollPhysics(),
-                    itemCount: _data.length ?? 0,
+                    itemCount: _data.length,
                     itemBuilder: (BuildContext context, int index) {
                       EntryResponse entry = _data[index];
                       return _data.length - 1 == index
@@ -213,7 +213,7 @@ class _HomeRouteState extends State<HomeRoute> {
         items: _navigationEntries
             .map((entry) => BottomNavigationBarItem(
                   icon: Icon(entry.icon),
-                  title: Text(entry.title),
+                  label: entry.title,
                 ))
             .toList(),
       ),

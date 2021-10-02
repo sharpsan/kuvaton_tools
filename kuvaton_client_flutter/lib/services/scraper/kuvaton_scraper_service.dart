@@ -17,8 +17,9 @@ class KuvatonScraperService {
   // parse image entries (filename, imagepath, etc)
   List<ParsedEntry> _parseEntries(Document document) {
     List<Element> entries = document.body
-        .querySelector('div#kuvaboxi')
-        .querySelectorAll('div.kuvaboxi');
+            ?.querySelector('div#kuvaboxi')
+            ?.querySelectorAll('div.kuvaboxi') ??
+        [];
     List<ParsedEntry> parsedEntries = entries
         .map((entry) => ParsedEntry(
               imageFilename: _parseImageFilename(entry),
@@ -28,13 +29,13 @@ class KuvatonScraperService {
     return parsedEntries;
   }
 
-  String _parseImageFilename(Element element) {
-    String imageFilename = element.querySelector('.kuvaotsikko').text;
+  String? _parseImageFilename(Element element) {
+    String? imageFilename = element.querySelector('.kuvaotsikko')?.text;
     return imageFilename;
   }
 
-  String _parseImageUrl(Element element) {
-    String imageUrl = element.querySelector('div a img').attributes['src'];
+  String? _parseImageUrl(Element element) {
+    String? imageUrl = element.querySelector('div a img')?.attributes['src'];
     return imageUrl;
   }
 }

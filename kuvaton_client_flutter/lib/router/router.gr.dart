@@ -4,77 +4,60 @@
 // AutoRouteGenerator
 // **************************************************************************
 
-// ignore_for_file: public_member_api_docs
+import 'package:auto_route/auto_route.dart' as _i3;
+import 'package:flutter/material.dart' as _i4;
 
-import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
+import '../routes/home_route/home_route.dart' as _i1;
+import '../routes/image_route/image_route.dart' as _i2;
 
-import '../routes/home_route/home_route.dart';
-import '../routes/image_route/image_route.dart';
+class AppRouter extends _i3.RootStackRouter {
+  AppRouter([_i4.GlobalKey<_i4.NavigatorState>? navigatorKey])
+      : super(navigatorKey);
 
-class Routes {
-  static const String homeRoute = '/';
-  static const String imageRoute = '/image-route';
-  static const all = <String>{
-    homeRoute,
-    imageRoute,
-  };
-}
-
-class Router extends RouterBase {
   @override
-  List<RouteDef> get routes => _routes;
-  final _routes = <RouteDef>[
-    RouteDef(Routes.homeRoute, page: HomeRoute),
-    RouteDef(Routes.imageRoute, page: ImageRoute),
-  ];
-  @override
-  Map<Type, AutoRouteFactory> get pagesMap => _pagesMap;
-  final _pagesMap = <Type, AutoRouteFactory>{
-    HomeRoute: (data) {
-      return MaterialPageRoute<dynamic>(
-        builder: (context) => HomeRoute(),
-        settings: data,
-      );
+  final Map<String, _i3.PageFactory> pagesMap = {
+    HomeRoute.name: (routeData) {
+      return _i3.MaterialPageX<dynamic>(
+          routeData: routeData, child: _i1.HomeRoute());
     },
-    ImageRoute: (data) {
-      final args = data.getArgs<ImageRouteArguments>(nullOk: false);
-      return MaterialPageRoute<dynamic>(
-        builder: (context) => ImageRoute(
-          imageUrl: args.imageUrl,
-          imageFilename: args.imageFilename,
-        ),
-        settings: data,
-      );
-    },
+    ImageRoute.name: (routeData) {
+      final args = routeData.argsAs<ImageRouteArgs>();
+      return _i3.MaterialPageX<dynamic>(
+          routeData: routeData,
+          child: _i2.ImageRoute(
+              imageUrl: args.imageUrl, imageFilename: args.imageFilename));
+    }
   };
+
+  @override
+  List<_i3.RouteConfig> get routes => [
+        _i3.RouteConfig(HomeRoute.name, path: '/'),
+        _i3.RouteConfig(ImageRoute.name, path: '/image-route')
+      ];
 }
 
-/// ************************************************************************
-/// Navigation helper methods extension
-/// *************************************************************************
+/// generated route for [_i1.HomeRoute]
+class HomeRoute extends _i3.PageRouteInfo<void> {
+  const HomeRoute() : super(name, path: '/');
 
-extension RouterExtendedNavigatorStateX on ExtendedNavigatorState {
-  Future<dynamic> pushHomeRoute() => push<dynamic>(Routes.homeRoute);
-
-  Future<dynamic> pushImageRoute({
-    @required String imageUrl,
-    @required String imageFilename,
-  }) =>
-      push<dynamic>(
-        Routes.imageRoute,
-        arguments: ImageRouteArguments(
-            imageUrl: imageUrl, imageFilename: imageFilename),
-      );
+  static const String name = 'HomeRoute';
 }
 
-/// ************************************************************************
-/// Arguments holder classes
-/// *************************************************************************
+/// generated route for [_i2.ImageRoute]
+class ImageRoute extends _i3.PageRouteInfo<ImageRouteArgs> {
+  ImageRoute({required String? imageUrl, required String? imageFilename})
+      : super(name,
+            path: '/image-route',
+            args: ImageRouteArgs(
+                imageUrl: imageUrl, imageFilename: imageFilename));
 
-/// ImageRoute arguments holder class
-class ImageRouteArguments {
-  final String imageUrl;
-  final String imageFilename;
-  ImageRouteArguments({@required this.imageUrl, @required this.imageFilename});
+  static const String name = 'ImageRoute';
+}
+
+class ImageRouteArgs {
+  const ImageRouteArgs({required this.imageUrl, required this.imageFilename});
+
+  final String? imageUrl;
+
+  final String? imageFilename;
 }

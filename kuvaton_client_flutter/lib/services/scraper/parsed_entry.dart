@@ -1,6 +1,6 @@
 class ParsedEntry {
-  String imageFilename;
-  String imageUrl;
+  String? imageFilename;
+  String? imageUrl;
   ParsedEntry({
     this.imageFilename,
     this.imageUrl,

@@ -5,7 +5,7 @@ class LoadingOverlay extends StatefulWidget {
   final double opacity;
   final isLoading;
   LoadingOverlay({
-    this.child,
+    required this.child,
     this.opacity = 0.4,
     this.isLoading = false,
   }) : assert(opacity >= 0 && opacity <= 1);
@@ -29,7 +29,7 @@ class _LoadingOverlayState extends State<LoadingOverlay> {
               child: Container(
                 padding: EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).accentTextTheme.bodyText1.color,
+                  color: Theme.of(context).colorScheme.onSecondary,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: CircularProgressIndicator(),

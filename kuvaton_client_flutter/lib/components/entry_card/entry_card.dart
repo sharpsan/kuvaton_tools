@@ -4,11 +4,11 @@ import 'package:kuvaton_client_flutter/components/entry_card/kuvaton_cached_netw
 import 'package:kuvaton_client_flutter/router/router.gr.dart';
 
 class EntryCard extends StatefulWidget {
-  final String imageFilename;
-  final String imageUrl;
+  final String? imageFilename;
+  final String? imageUrl;
   EntryCard({
-    @required this.imageFilename,
-    @required this.imageUrl,
+    required this.imageFilename,
+    required this.imageUrl,
   });
   @override
   _EntryCardState createState() => _EntryCardState();
@@ -16,6 +16,7 @@ class EntryCard extends StatefulWidget {
 
 class _EntryCardState extends State<EntryCard> {
   bool isFinishedLoading = false;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -26,7 +27,7 @@ class _EntryCardState extends State<EntryCard> {
         boxShadow: [
           if (Theme.of(context).brightness == Brightness.light)
             BoxShadow(
-              color: Colors.grey[400],
+              color: Colors.grey.shade400,
               blurRadius: 6.0, // has the effect of softening the shadow
               spreadRadius: 1.0, // has the effect of extending the shadow
               offset: Offset(
@@ -44,7 +45,7 @@ class _EntryCardState extends State<EntryCard> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 Hero(
-                  tag: widget.imageUrl,
+                  tag: widget.imageUrl ?? '',
                   child: KuvatonCachedNetworkImage(imageUrl: widget.imageUrl),
                 ),
               ],
@@ -56,9 +57,12 @@ class _EntryCardState extends State<EntryCard> {
               child: InkWell(
                 borderRadius: BorderRadius.circular(8),
                 onTap: () {
-                  ExtendedNavigator.of(context).pushImageRoute(
+                  context.router.push(
+                    ImageRoute(
                       imageFilename: widget.imageFilename,
-                      imageUrl: widget.imageUrl);
+                      imageUrl: widget.imageUrl,
+                    ),
+                  );
                 },
               ),
             ),

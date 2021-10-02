@@ -19,11 +19,11 @@ class API {
         ]),
       );
 
-  Uri lolCategory({int pageNumber}) =>
+  Uri lolCategory({int pageNumber = 1}) =>
       endpointUri(Endpoint.lolCategory, prefixPath: pageNumber);
-  Uri topCategory({int pageNumber}) =>
+  Uri topCategory({int pageNumber = 1}) =>
       endpointUri(Endpoint.topCategory, prefixPath: pageNumber);
-  Uri randomCategory({int pageNumber}) =>
+  Uri randomCategory({int pageNumber = 1}) =>
       endpointUri(Endpoint.randomCategory, prefixPath: pageNumber);
 
   static Map<Endpoint, String> _paths = {

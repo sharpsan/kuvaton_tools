@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 
 class IconTextButton extends StatelessWidget {
   final bool iconIsLeading;
-  final IconData iconData;
-  final String text;
-  final Function onPressed;
+  final IconData? iconData;
+  final String? text;
+  final VoidCallback? onPressed;
   IconTextButton({
     this.iconIsLeading = true,
     this.iconData,
     this.text,
-    @required this.onPressed,
+    required this.onPressed,
   });
 
-  Widget _buildIcon(IconData iconData) {
+  Widget _buildIcon(IconData? iconData) {
     return iconData == null
         ? Container()
         : Padding(
@@ -37,7 +37,7 @@ class IconTextButton extends StatelessWidget {
           child: Row(
             children: <Widget>[
               if (iconIsLeading) _buildIcon(iconData),
-              Text(text ?? '',
+              Text('$text',
                   style: TextStyle(
                     fontSize: 18,
                   )),

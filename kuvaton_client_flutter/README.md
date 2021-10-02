@@ -2,6 +2,12 @@
 
 App client for [KuvatON](https://kuvaton.com/).
 
+## Generating
+Generate routes using:
+```
+flutter packages pub run build_runner build --delete-conflicting-outputs
+```
+
 ## Building
 ### Build failing due to pinch_zoom_image
 This library is old.  Below discusses an easy fix.

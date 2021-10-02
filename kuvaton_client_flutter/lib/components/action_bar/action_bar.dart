@@ -6,15 +6,15 @@ import 'package:kuvaton_client_flutter/components/action_bar/icon_text_button.da
 ///
 /// go to next/previous page
 class ActionBar extends StatelessWidget {
-  final Function buttonPreviousOnPressed;
-  final Function buttonNextOnPressed;
-  final Function buttonPageOnPressed;
+  final VoidCallback buttonPreviousOnPressed;
+  final VoidCallback buttonNextOnPressed;
+  final VoidCallback buttonPageOnPressed;
   final int currentPageNumber;
   ActionBar({
-    @required this.buttonPreviousOnPressed,
-    @required this.buttonNextOnPressed,
-    @required this.buttonPageOnPressed,
-    @required this.currentPageNumber,
+    required this.buttonPreviousOnPressed,
+    required this.buttonNextOnPressed,
+    required this.buttonPageOnPressed,
+    required this.currentPageNumber,
   });
   @override
   Widget build(BuildContext context) {
