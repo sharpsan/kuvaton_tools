@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'dart:io' show Platform;
 import 'package:android_intent/android_intent.dart';
+import 'package:async/async.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:file_utils/file_utils.dart';
 import 'package:media_scanner/media_scanner.dart';
@@ -23,7 +24,60 @@ class ImageRoute extends StatefulWidget {
 }
 
 class _ImageRouteState extends State<ImageRoute> {
-  final SweetSheet _sweetSheet = SweetSheet();
+  final _sweetSheet = SweetSheet();
+  final _scaleStateController = PhotoViewScaleStateController();
+  var _isScaling = false;
+
+  @override
+  void initState() {
+    _listenForScaling();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onVerticalDragUpdate: (details) {
+          if (_isScaling) return;
+          if (details.delta.dy > 10 || details.delta.dy < 10) {
+            context.router.pop();
+          }
+        },
+        child: PhotoView.customChild(
+          backgroundDecoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+          ),
+          scaleStateController: _scaleStateController,
+          child: Center(
+            child: SingleChildScrollView(
+              child: Hero(
+                tag: widget.imageUrl ?? '',
+                child: SizedBox(
+                  width: double.infinity,
+                  child: KuvatonCachedNetworkImage(
+                    imageUrl: widget.imageUrl,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.save),
+        onPressed:
+            widget.imageUrl == null ? null : () => _saveImage(widget.imageUrl!),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _scaleStateController.dispose();
+    super.dispose();
+  }
 
   Future _openImageIntent(String imagePath) async {
     if (Platform.isAndroid) {
@@ -128,40 +182,21 @@ class _ImageRouteState extends State<ImageRoute> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onVerticalDragUpdate: (details) {
-          if (details.delta.dy > 10 || details.delta.dy < 10) {
-            context.router.pop();
-          }
-        },
-        child: PhotoView.customChild(
-          backgroundDecoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-          ),
-          child: Center(
-            child: SingleChildScrollView(
-              child: Hero(
-                tag: widget.imageUrl ?? '',
-                child: SizedBox(
-                  width: double.infinity,
-                  child: KuvatonCachedNetworkImage(
-                    imageUrl: widget.imageUrl,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.save),
-        onPressed:
-            widget.imageUrl == null ? null : () => _saveImage(widget.imageUrl!),
-      ),
-    );
+  void _listenForScaling() {
+    final _updateIsScalingWhenIdle =
+        RestartableTimer(Duration(milliseconds: 200), () {
+      setState(() {
+        _isScaling = false;
+      });
+    });
+    _scaleStateController.outputScaleStateStream.listen((event) {
+      if (event == PhotoViewScaleState.zoomedIn ||
+          event == PhotoViewScaleState.zoomedOut) {
+        setState(() {
+          _isScaling = true;
+        });
+      }
+      _updateIsScalingWhenIdle.reset();
+    });
   }
 }
