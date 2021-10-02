@@ -4,6 +4,7 @@ import 'dart:io' show Platform;
 import 'package:android_intent/android_intent.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:file_utils/file_utils.dart';
+import 'package:media_scanner/media_scanner.dart';
 import 'package:sweetsheet/sweetsheet.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -74,7 +75,7 @@ class _ImageRouteState extends State<ImageRoute> {
     File file = fileInfo.file;
     String filePath = '${file.path}';
     print('path to file: $filePath');
-    var extStorageDirPath = '/storage/emulated/0/';
+    var extStorageDirPath = '/storage/emulated/0';
     var picturesDirPath = '${extStorageDirPath}/Pictures';
     var kuvatonDirPath = '$picturesDirPath/kuvatON';
     var destination = '$kuvatonDirPath/${widget.imageFilename}';
@@ -89,6 +90,9 @@ class _ImageRouteState extends State<ImageRoute> {
     }
     if (await File(destination).exists()) {
       print('file exists :)');
+
+      /// trigger Android's media-scanner so new image shows up in gallery apps
+      MediaScanner.loadMedia(path: destination);
       _sweetSheet.show(
         context: context,
         title: Text('Saved'),
