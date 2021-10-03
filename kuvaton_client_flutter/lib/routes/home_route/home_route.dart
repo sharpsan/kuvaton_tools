@@ -32,7 +32,7 @@ class _HomeRouteState extends State<HomeRoute> {
   bool _fabIsVisible = false;
   bool _loading = false;
 
-  Future<bool> _getData({
+  Future<void> _getData({
     required Endpoint endpoint,
     int pageNumber = 0,
     bool showLoadingOverlay = true,
@@ -47,19 +47,17 @@ class _HomeRouteState extends State<HomeRoute> {
     setState(() => _data.addAll(data.entries));
     _setLoadingOverlayVisibility(false);
     _loading = false;
-    return true;
   }
 
-  Future<bool> _pullToRefreshHandler() async {
+  Future<void> _pullToRefreshHandler() async {
     print('CALLING: _pullToRefreshHandler()');
     _data.clear();
     await _getData(endpoint: _currentEndpoint, showLoadingOverlay: false);
     _resetPageCount();
-    return true;
   }
 
   /// load an additional page
-  Future _loadMore() async {
+  Future<void> _loadMore() async {
     print('CALLING _loadmore()');
     if (_loading) return print('cancelling, already loading...');
     _currentPage++;
@@ -69,7 +67,7 @@ class _HomeRouteState extends State<HomeRoute> {
         showLoadingOverlay: false);
   }
 
-  Future _switchTab(int tabIndex) async {
+  Future<void> _switchTab(int tabIndex) async {
     print('CALLING _switchTab()');
     setState(() => _currentTabIndex = tabIndex);
     _setFabVisible(false);
