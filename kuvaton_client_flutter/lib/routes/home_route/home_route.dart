@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_picker/flutter_picker.dart';
-import 'package:kuvaton_client_flutter/components/action_bar/action_bar.dart';
 import 'package:kuvaton_client_flutter/components/entry_card/entry_card.dart';
 import 'package:kuvaton_client_flutter/components/loading_indicators/kuvaton_loading_branded.dart';
 import 'package:kuvaton_client_flutter/components/loading_indicators/loading_overlay.dart';
@@ -87,7 +86,7 @@ class _HomeRouteState extends State<HomeRoute> {
   }
 
   Future<void> _goToPage() async {
-    List numbers = List.generate(500, (index) => index);
+    var numbers = List<int>.generate(10000, (index) => index);
     numbers.removeAt(0);
     Picker(
         adapter: PickerDataAdapter<String>(pickerdata: numbers),
@@ -97,12 +96,15 @@ class _HomeRouteState extends State<HomeRoute> {
         title: Text('Page'),
         backgroundColor: Theme.of(context).cardColor,
         textStyle: Theme.of(context).textTheme.bodyText1,
-        onConfirm: (Picker picker, List value) {
-          int selectedValue = numbers[value[0]];
+        onSelect: (picker, index, selection) {
+          numbers.add(numbers.last + 1);
+        },
+        onConfirm: (picker, List selected) {
+          int selectedValue = numbers[selected[0]];
           setState(() => _currentPage = selectedValue);
           _data.clear();
           _getData(endpoint: _currentEndpoint, pageNumber: selectedValue);
-        }).showModal(this.context); //
+        }).showModal(this.context);
   }
 
   Future<void> _nextPage() async {
@@ -178,24 +180,11 @@ class _HomeRouteState extends State<HomeRoute> {
                     physics: AlwaysScrollableScrollPhysics(),
                     itemCount: _data.length,
                     itemBuilder: (BuildContext context, int index) {
-                      EntryResponse entry = _data[index];
-                      return _data.length - 1 == index
-                          ? Column(
-                              children: <Widget>[
-                                EntryCard(
-                                    imageFilename: entry.imageFilename,
-                                    imageUrl: entry.imageUrl),
-                                ActionBar(
-                                  buttonPreviousOnPressed: _previousPage,
-                                  buttonNextOnPressed: _nextPage,
-                                  buttonPageOnPressed: _goToPage,
-                                  currentPageNumber: _currentPage,
-                                ),
-                              ],
-                            )
-                          : EntryCard(
-                              imageFilename: entry.imageFilename,
-                              imageUrl: entry.imageUrl);
+                      var entry = _data[index];
+                      return EntryCard(
+                        imageFilename: entry.imageFilename,
+                        imageUrl: entry.imageUrl,
+                      );
                     },
                   ),
                 ),
