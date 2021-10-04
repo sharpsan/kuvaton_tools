@@ -1,3 +1,4 @@
+import 'package:android_intent/flag.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'dart:io' show Platform;
@@ -5,6 +6,7 @@ import 'package:android_intent/android_intent.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:file_utils/file_utils.dart';
 import 'package:media_scanner/media_scanner.dart';
+import 'package:share/share.dart';
 import 'package:sweetsheet/sweetsheet.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -26,50 +28,92 @@ class _ImageRouteState extends State<ImageRoute> {
   final _sweetSheet = SweetSheet();
   final _scaleStateController = PhotoViewScaleStateController();
   final _photoViewController = PhotoViewController();
+  final _cacheManager = DefaultCacheManager();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: PhotoView.customChild(
-        backgroundDecoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-        ),
-        controller: _photoViewController,
-        scaleStateController: _scaleStateController,
-        scaleStateCycle: _scaleStateCycle,
-        initialScale: PhotoViewComputedScale.contained * 1.0,
-        minScale: PhotoViewComputedScale.contained * 1.0,
-        maxScale: PhotoViewComputedScale.covered * 2.5,
-        child: GestureDetector(
-          onVerticalDragUpdate: (details) {
-            if (_scaleStateController.isZooming)
-              return; // disable if zoomed in/out
-            if (details.delta.dy > 10 || details.delta.dy < 10) {
-              context.router.pop();
-            }
-          },
-          onDoubleTap: () {
-            if (_scaleStateController.isZooming) {
-              _scaleStateController.reset();
-            } else {
-              _photoViewController.scale =
-                  (PhotoViewComputedScale.covered * 2.5).multiplier;
-            }
-          },
-          child: Center(
-            child: SingleChildScrollView(
-              child: Hero(
-                tag: widget.imageUrl ?? '',
-                child: SizedBox(
-                  width: double.infinity,
-                  child: KuvatonCachedNetworkImage(
-                    imageUrl: widget.imageUrl,
+      body: Stack(
+        children: [
+          PhotoView.customChild(
+            backgroundDecoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+            ),
+            controller: _photoViewController,
+            scaleStateController: _scaleStateController,
+            scaleStateCycle: _scaleStateCycle,
+            initialScale: PhotoViewComputedScale.contained * 1.0,
+            minScale: PhotoViewComputedScale.contained * 1.0,
+            maxScale: PhotoViewComputedScale.covered * 2.5,
+            child: GestureDetector(
+              onVerticalDragUpdate: (details) {
+                if (_scaleStateController.isZooming)
+                  return; // disable if zoomed in/out
+                if (details.delta.dy > 10 || details.delta.dy < 10) {
+                  context.router.pop();
+                }
+              },
+              onDoubleTap: () {
+                if (_scaleStateController.isZooming) {
+                  _scaleStateController.reset();
+                } else {
+                  _photoViewController.scale =
+                      (PhotoViewComputedScale.covered * 2.5).multiplier;
+                }
+              },
+              child: Center(
+                child: SingleChildScrollView(
+                  child: Hero(
+                    tag: widget.imageUrl ?? '',
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: KuvatonCachedNetworkImage(
+                        imageUrl: widget.imageUrl,
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
+
+          /// top bar
+          Align(
+            alignment: Alignment.topCenter,
+            child: Container(
+              color: Colors.black.withOpacity(0.5),
+              padding: EdgeInsets.only(
+                left: 4,
+                top: MediaQuery.of(context).padding.top + 4,
+                right: 4,
+                bottom: 4,
+              ),
+              child: Row(
+                children: [
+                  BackButton(
+                    color: Colors.white,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    '${widget.imageFilename}',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: Theme.of(context).textTheme.headline6?.fontSize,
+                    ),
+                  ),
+                  Spacer(),
+                  IconButton(
+                    icon: Icon(
+                      Icons.share,
+                      color: Colors.white,
+                    ),
+                    onPressed: () => _shareImage(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.save),
@@ -86,19 +130,43 @@ class _ImageRouteState extends State<ImageRoute> {
     super.dispose();
   }
 
-  Future _openImageIntent(String imagePath) async {
+  Future<void> _openImageIntent(String imagePath) async {
     if (Platform.isAndroid) {
       AndroidIntent intent = AndroidIntent(
         action: 'action_view',
         type: 'image/*',
         data: '$imagePath',
       );
-      await intent.launch();
+      return await intent.launch();
     }
   }
 
+  Future<void> _shareImage() async {
+    FileInfo? fileInfo = await _cacheManager.getFileFromCache(widget.imageUrl!);
+    if (fileInfo == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'An error has ocurred while trying to share this image.',
+          ),
+        ),
+      );
+      return;
+    }
+    if (widget.imageFilename == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'An error has ocurred while trying to share this image.',
+          ),
+        ),
+      );
+    }
+    return await Share.shareFiles([fileInfo.file.path]);
+  }
+
   //TODO: move to helper class
-  void _saveImage(String imageUrl) async {
+  Future<void> _saveImage(String imageUrl) async {
     /// handle permissions
     if (!await Permission.storage.request().isGranted) {
       _sweetSheet.show(
@@ -117,8 +185,7 @@ class _ImageRouteState extends State<ImageRoute> {
     }
 
     /// save image
-    DefaultCacheManager cacheManager = DefaultCacheManager();
-    FileInfo? fileInfo = await cacheManager.getFileFromCache(widget.imageUrl!);
+    FileInfo? fileInfo = await _cacheManager.getFileFromCache(widget.imageUrl!);
     if (fileInfo == null) {
       _sweetSheet.show(
         context: context,
