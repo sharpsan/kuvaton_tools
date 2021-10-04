@@ -47,8 +47,10 @@ class _ImageRouteState extends State<ImageRoute> {
             maxScale: PhotoViewComputedScale.covered * 2.5,
             child: GestureDetector(
               onVerticalDragUpdate: (details) {
-                if (_scaleStateController.isZooming)
-                  return; // disable if zoomed in/out
+                /// returns when zoomed in/out
+                /// to prevent accidental swiping
+                if (_scaleStateController.isZooming) return;
+
                 if (details.delta.dy > 10 || details.delta.dy < 10) {
                   context.router.pop();
                 }
